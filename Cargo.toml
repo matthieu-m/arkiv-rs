@@ -1,0 +1,6 @@
+[package]
+name = "arkiv"
+version = "0.1.0"
+authors = ["Matthieu M. <matthieum.147192@gmail.com>"]
+
+[dependencies]
