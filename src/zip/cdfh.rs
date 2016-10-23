@@ -1,8 +1,6 @@
 //! # Central Directory File Header
 
-use std::ops::Range;
-
-use super::super::utils;
+use super::super::utils::{Slice, LeFieldReader};
 
 /// A Central Directory File Header
 ///
@@ -10,7 +8,7 @@ use super::super::utils;
 /// does not guarantee their integrity.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct CentralDirectoryFileHeaderReader<'a> {
-    data: utils::Slice<'a>,
+    data: Slice<'a>,
 }
 
 // +-------------------------------------------------------------------------+
@@ -55,7 +53,7 @@ impl<'a> CentralDirectoryFileHeaderReader<'a> {
     /// still possible.
     pub fn new(slice: &'a [u8]) -> Option<CentralDirectoryFileHeaderReader<'a>> {
         if slice.len() >= Self::min_size() {
-            Some(CentralDirectoryFileHeaderReader { data: utils::Slice::new(slice) })
+            Some(CentralDirectoryFileHeaderReader { data: Slice::new(slice) })
         } else {
             None
         }
@@ -197,38 +195,19 @@ impl<'a> CentralDirectoryFileHeaderReader<'a> {
         self.file_name_size() as usize +
         self.extra_field_size() as usize
     }
+}
 
-    /// Interprets the 2 bytes as u16 (little-endian).
-    fn read_u16(&self, range: Range<usize>) -> u16 {
-        debug_assert!(range.len() == 2);
-        debug_assert!(range.end <= self.data.len());
+impl<'a> LeFieldReader<'a> for CentralDirectoryFileHeaderReader<'a> {
+    fn min_size() -> usize { CentralDirectoryFileHeaderReader::min_size() }
 
-        self.data
-            .slice(range)
-            .and_then(utils::read_u16_le)
-            .unwrap_or(utils::DEAD)
-    }
-
-    /// Interprets the 4 bytes as u32 (little-endian).
-    fn read_u32(&self, range: Range<usize>) -> u32 {
-        debug_assert!(range.len() == 4);
-        debug_assert!(range.end <= self.data.len());
-
-        self.data
-            .slice(range)
-            .and_then(utils::read_u32_le)
-            .unwrap_or(utils::DEADBEEF)
-    }
-
-    /// Optional binary field of a given length at a given index.
-    fn read_field(&self, index: usize, length: usize) -> Option<&'a [u8]> {
-        self.data.slice(index..(index + length)).map(|s| s.raw())
-    }
+    fn get_slice(&self) -> Slice<'a> { self.data }
 }
 
 #[cfg(test)]
 mod tests {
     use std;
+
+    use super::super::super::utils::tests::{test_all_u16_at, test_some_u32_at};
 
     type Reader<'a> = super::CentralDirectoryFileHeaderReader<'a>;
 
@@ -635,48 +614,5 @@ mod tests {
         assert_eq!(cdfh.file_name(), Some(hello_file));
         assert_eq!(cdfh.extra_field(), Some(hello_extra));
         assert_eq!(cdfh.file_comment(), Some(hello_comment));
-    }
-
-    fn test_all_u16_at<F>(buffer: &mut [u8], index: usize, f: F)
-        where F: Fn(&[u8], u16) -> ()
-    {
-        for data in 0..65536u32 {
-            let data = data as u16;
-            buffer[index + 1] = (data >> 8) as u8;
-            buffer[index + 0] = (data >> 0) as u8;
-
-            f(buffer, data)
-        }
-    }
-
-    fn test_some_u32_at<F>(buffer: &mut [u8], index: usize, f: F)
-        where F: Fn(&[u8], u32) -> ()
-    {
-        fn test<F>(buffer: &mut [u8], data: u32, index: usize, f: &F)
-            where F: Fn(&[u8], u32) -> ()
-        {
-            buffer[index + 3] = (data >> 24) as u8;
-            buffer[index + 2] = (data >> 16) as u8;
-            buffer[index + 1] = (data >>  8) as u8;
-            buffer[index + 0] = (data >>  0) as u8;
-
-            f(buffer, data)
-        }
-
-        for data in 0..65536 {
-            test(buffer, data, index, &f);
-        }
-
-        for data in 0..65536 {
-            test(buffer, data * 251, index, &f);
-        }
-
-        for data in 0..65536 {
-            test(buffer, std::u32::MAX - data * 251, index, &f);
-        }
-
-        for data in 0..65536 {
-            test(buffer, std::u32::MAX - data, index, &f);
-        }
     }
 }

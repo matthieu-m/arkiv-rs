@@ -1,5 +1,8 @@
 //! # Utility module
 
+#[cfg(test)]
+pub mod tests;
+
 use std::ops::Range;
 use std::slice::from_raw_parts;
 
@@ -52,6 +55,40 @@ impl<'a> Slice<'a> {
         } else {
             None
         }
+    }
+}
+
+/// Helper trait to read little-endian fields.
+pub trait LeFieldReader<'a> {
+    fn min_size() -> usize;
+
+    fn get_slice(&self) -> Slice<'a>;
+
+    /// Interprets the 2 bytes as u16 (little-endian).
+    fn read_u16(&self, range: Range<usize>) -> u16 {
+        debug_assert!(range.len() == 2);
+        debug_assert!(range.end <= Self::min_size());
+
+        self.get_slice()
+            .slice(range)
+            .and_then(read_u16_le)
+            .unwrap_or(DEAD)
+    }
+
+    /// Interprets the 4 bytes as u32 (little-endian).
+    fn read_u32(&self, range: Range<usize>) -> u32 {
+        debug_assert!(range.len() == 4);
+        debug_assert!(range.end <= Self::min_size());
+
+        self.get_slice()
+            .slice(range)
+            .and_then(read_u32_le)
+            .unwrap_or(DEADBEEF)
+    }
+
+    /// Optional binary field of a given length at a given index.
+    fn read_field(&self, index: usize, length: usize) -> Option<&'a [u8]> {
+        self.get_slice().slice(index..(index + length)).map(|s| s.raw())
     }
 }
 
