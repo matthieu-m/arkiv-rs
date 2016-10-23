@@ -161,4 +161,6 @@
 //! - PKWare: http://www.pkware.com/documents/casestudies/APPNOTE.TXT
 
 mod eocd;
+mod cdfh;
 pub use self::eocd::EndOfCentralDirectoryReader;
+pub use self::cdfh::CentralDirectoryFileHeaderReader;
