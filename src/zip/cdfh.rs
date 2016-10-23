@@ -214,8 +214,8 @@ mod tests {
     #[test]
     fn reader_new_failure_on_short_slice() {
         let v = vec!(0; Reader::min_size() - 1);
-        for length in 0..(Reader::min_size() - 1) {
-            assert_eq!(Reader::new(&v[0..(length+1)]), None);
+        for length in 0..v.len() {
+            assert_eq!(Reader::new(&v[0..length]), None);
         }
     }
 
