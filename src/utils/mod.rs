@@ -3,6 +3,12 @@
 use std::ops::Range;
 use std::slice::from_raw_parts;
 
+/// Constant used when unwrapping an empty `Option<u16>`
+pub const DEAD: u16 = 0xdead;
+
+/// Constant used when unwrapping an empty `Option<u32>`
+pub const DEADBEEF: u32 = 0xdeadbeef;
+
 /// A slice of bytes.
 ///
 /// It is used in preference to a raw `&[u8]` to avoid accidentally calling the

@@ -32,7 +32,7 @@
 //!
 //! ## End of Central Directory
 //!
-//! This record is located toward the end of the archive (within 65,535 bytes of
+//! This record is located toward the end of the archive (within 65,557 bytes of
 //! the end, to be specific).
 //!
 //! Format (courtesy of Wikipedia):

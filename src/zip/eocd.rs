@@ -2,7 +2,7 @@
 
 use std::ops::Range;
 
-use super::super::utils::{Slice, read_u16_le, read_u32_le};
+use super::super::utils;
 
 /// A End of Central Directory
 ///
@@ -10,7 +10,7 @@ use super::super::utils::{Slice, read_u16_le, read_u32_le};
 /// does not guarantee their integrity.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct EndOfCentralDirectoryReader<'a> {
-    data: Slice<'a>,
+    data: utils::Slice<'a>,
 }
 
 // +---------------------------------------------------------------------+
@@ -27,6 +27,15 @@ pub struct EndOfCentralDirectoryReader<'a> {
 // |     22  | n      | Comment                                          |
 // +---------------------------------------------------------------------+
 impl<'a> EndOfCentralDirectoryReader<'a> {
+    /// Returns the minimum size of the record.
+    pub fn min_size() -> usize { 22 }
+
+    /// Returns the maximum size of the record.
+    pub fn max_size() -> usize { 22 + 65535 }
+
+    /// Returns the expected signature.
+    pub fn expected_signature() -> u32 { 0x06054b50 }
+
     /// Returns a new instance if the slice is sufficiently large (22 bytes),
     /// otherwise returns `None`.
     ///
@@ -35,66 +44,66 @@ impl<'a> EndOfCentralDirectoryReader<'a> {
     /// still possible.
     pub fn new(slice: &'a [u8]) -> Option<EndOfCentralDirectoryReader<'a>> {
         if slice.len() >= 22 {
-            Some(EndOfCentralDirectoryReader { data: Slice::new(slice) })
+            Some(EndOfCentralDirectoryReader { data: utils::Slice::new(slice) })
         } else {
             None
         }
     }
 
-    /// Returns the expected signature
-    pub fn expected_signature() -> u32 { 0x06054b50 }
-
     /// Returns the signature.
     pub fn signature(&self) -> u32 { self.read_u32(0..4) }
 
-    /// Returns the number of the disk
+    /// Returns the number of the disk.
     pub fn disk(&self) -> u16 { self.read_u16(4..6) }
 
-    /// Returns the number of the disk where the central directory starts
+    /// Returns the number of the disk where the central directory starts.
     pub fn central_directory_disk(&self) -> u16 { self.read_u16(6..8) }
 
-    /// Returns the number of central directory records on this disk
+    /// Returns the number of central directory records on this disk.
     pub fn nb_local_central_directory_records(&self) -> u16 {
         self.read_u16(8..10)
     }
 
-    /// Returns the number of central directory records on all disks
+    /// Returns the number of central directory records on all disks.
     pub fn nb_central_directory_records(&self) -> u16 { self.read_u16(10..12) }
 
-    /// Returns the size of the central directory (in bytes)
+    /// Returns the size of the central directory (in bytes).
     pub fn central_directory_size(&self) -> u32 { self.read_u32(12..16) }
 
     /// Returns the offset of the central directory, from start of archive.
     pub fn central_directory_offset(&self) -> u32 { self.read_u32(16..20) }
 
-    /// Returns the comment field size
+    /// Returns the comment field size.
     pub fn comment_size(&self) -> u16 { self.read_u16(20..22) }
 
     /// Returns the comment field, possibly of length 0, or `None` if the slice
     /// is truncated.
     pub fn comment(&self) -> Option<&'a [u8]> {
-        let range = 22..(22 + self.comment_size() as usize);
+        let min = Self::min_size();
+        let range = min..(min + self.comment_size() as usize);
         self.data.slice(range).map(|s| s.raw())
     }
 
-    /// Interpret the 2 bytes
+    /// Interprets the 2 bytes as u16 (little-endian).
     fn read_u16(&self, range: Range<usize>) -> u16 {
         debug_assert!(range.len() == 2);
         debug_assert!(range.end <= self.data.len());
 
-        read_u16_le(
-            self.data.slice(range).expect("Length >= 22")
-        ).expect("Length == 2")
+        self.data
+            .slice(range)
+            .and_then(utils::read_u16_le)
+            .unwrap_or(utils::DEAD)
     }
 
-    /// Interpret the 4 bytes
+    /// Interprets the 4 bytes as u32 (little-endian).
     fn read_u32(&self, range: Range<usize>) -> u32 {
         debug_assert!(range.len() == 4);
         debug_assert!(range.end <= self.data.len());
 
-        read_u32_le(
-            self.data.slice(range).expect("Length >= 22")
-        ).expect("Length == 4")
+        self.data
+            .slice(range)
+            .and_then(utils::read_u32_le)
+            .unwrap_or(utils::DEADBEEF)
     }
 }
 
