@@ -2,8 +2,7 @@
 
 use std::ops::Range;
 
-use super::super::api::Slice;
-use super::super::utils::{read_u16_le, read_u32_le};
+use super::super::utils::{Slice, read_u16_le, read_u32_le};
 
 /// A End of Central Directory
 ///
@@ -34,9 +33,9 @@ impl<'a> EndOfCentralDirectoryReader<'a> {
     /// Note that neither the signature nor the size of comment field are
     /// checked, this is so that decoding potentially corrupted archives is
     /// still possible.
-    pub fn new(slice: Slice<'a>) -> Option<EndOfCentralDirectoryReader<'a>> {
+    pub fn new(slice: &'a [u8]) -> Option<EndOfCentralDirectoryReader<'a>> {
         if slice.len() >= 22 {
-            Some(EndOfCentralDirectoryReader { data: slice })
+            Some(EndOfCentralDirectoryReader { data: Slice::new(slice) })
         } else {
             None
         }
@@ -73,8 +72,9 @@ impl<'a> EndOfCentralDirectoryReader<'a> {
 
     /// Returns the comment field, possibly of length 0, or `None` if the slice
     /// is truncated.
-    pub fn comment(&self) -> Option<Slice<'a>> {
-        self.data.slice(22..(22 + self.comment_size() as usize))
+    pub fn comment(&self) -> Option<&'a [u8]> {
+        let range = 22..(22 + self.comment_size() as usize);
+        self.data.slice(range).map(|s| s.raw())
     }
 
     /// Interpret the 2 bytes
@@ -101,7 +101,6 @@ impl<'a> EndOfCentralDirectoryReader<'a> {
 #[cfg(test)]
 mod tests {
     use std;
-    use super::super::super::api::Slice;
 
     type Reader<'a> = super::EndOfCentralDirectoryReader<'a>;
 
@@ -109,24 +108,21 @@ mod tests {
     fn reader_new_failure_on_short_slice() {
         let v = vec!(0; 21);
         for length in 0..21 {
-            let slice = Slice::new(&v[0..(length+1)]);
-            assert_eq!(Reader::new(slice), None);
+            assert_eq!(Reader::new(&v[0..(length+1)]), None);
         }
     }
 
     #[test]
     fn reader_new_success_on_22_bytes_slice() {
         let v = vec!(0; 22);
-        let slice = Slice::new(&v);
-        assert!(Reader::new(slice).is_some());
+        assert!(Reader::new(&v).is_some());
     }
 
     #[test]
     fn reader_new_success_on_22_bytes_slice_with_nonzero_comment_length() {
         let mut v = vec!(0; 22);
         v[20] = 0x01;   // 1 byte comment
-        let slice = Slice::new(&v);
-        assert!(Reader::new(slice).is_some());
+        assert!(Reader::new(&v).is_some());
     }
 
     #[test]
@@ -136,7 +132,7 @@ mod tests {
         v[2] = 0x05;
         v[1] = 0x4b;
         v[0] = 0x50;
-        let eocd = Reader::new(Slice::new(&v)).unwrap();
+        let eocd = Reader::new(&v).unwrap();
         assert_eq!(
             eocd.signature(),
             Reader::expected_signature()
@@ -146,7 +142,7 @@ mod tests {
     #[test]
     fn reader_signature_success_with_unexpected_signature() {
         let v = vec!(0; 22);
-        let eocd = Reader::new(Slice::new(&v)).unwrap();
+        let eocd = Reader::new(&v).unwrap();
         assert_eq!(eocd.signature(), 0);
     }
 
@@ -154,7 +150,7 @@ mod tests {
     fn reader_disk_number_success() {
         let mut v = vec!(0; 22);
         test_all_u16_at(&mut v, 4, |v, disk| {
-            let eocd = Reader::new(Slice::new(v)).unwrap();
+            let eocd = Reader::new(v).unwrap();
             assert_eq!(eocd.disk(), disk);
         });
     }
@@ -163,7 +159,7 @@ mod tests {
     fn reader_central_directory_disk_number_success() {
         let mut v = vec!(0; 22);
         test_all_u16_at(&mut v, 6, |v, disk| {
-            let eocd = Reader::new(Slice::new(v)).unwrap();
+            let eocd = Reader::new(v).unwrap();
             assert_eq!(eocd.central_directory_disk(), disk);
         });
     }
@@ -172,7 +168,7 @@ mod tests {
     fn reader_nb_local_records_success() {
         let mut v = vec!(0; 22);
         test_all_u16_at(&mut v, 8, |v, nb| {
-            let eocd = Reader::new(Slice::new(v)).unwrap();
+            let eocd = Reader::new(v).unwrap();
             assert_eq!(eocd.nb_local_central_directory_records(), nb);
         });
     }
@@ -181,7 +177,7 @@ mod tests {
     fn reader_nb_records_success() {
         let mut v = vec!(0; 22);
         test_all_u16_at(&mut v, 10, |v, nb| {
-            let eocd = Reader::new(Slice::new(v)).unwrap();
+            let eocd = Reader::new(v).unwrap();
             assert_eq!(eocd.nb_central_directory_records(), nb);
         });
     }
@@ -190,7 +186,7 @@ mod tests {
     fn reader_central_directory_size_success() {
         let mut v = vec!(0; 22);
         test_some_u32_at(&mut v, 12, |v, nb| {
-            let eocd = Reader::new(Slice::new(v)).unwrap();
+            let eocd = Reader::new(v).unwrap();
             assert_eq!(eocd.central_directory_size(), nb);
         });
     }
@@ -199,7 +195,7 @@ mod tests {
     fn reader_central_directory_offset_success() {
         let mut v = vec!(0; 22);
         test_some_u32_at(&mut v, 16, |v, nb| {
-            let eocd = Reader::new(Slice::new(v)).unwrap();
+            let eocd = Reader::new(v).unwrap();
             assert_eq!(eocd.central_directory_offset(), nb);
         });
     }
@@ -208,7 +204,7 @@ mod tests {
     fn reader_comment_size_success() {
         let mut v = vec!(0; 22);
         test_all_u16_at(&mut v, 20, |v, nb| {
-            let eocd = Reader::new(Slice::new(v)).unwrap();
+            let eocd = Reader::new(v).unwrap();
             assert_eq!(eocd.comment_size(), nb);
         });
     }
@@ -216,9 +212,9 @@ mod tests {
     #[test]
     fn reader_comment_success_with_zero_length() {
         let v = vec!(0; 22);
-        let eocd = Reader::new(Slice::new(&v)).unwrap();
+        let eocd = Reader::new(&v).unwrap();
 
-        assert_eq!(eocd.comment(), Some(Slice::new(b"")));
+        assert_eq!(eocd.comment(), Some(&b""[..]));
     }
 
     #[test]
@@ -227,9 +223,9 @@ mod tests {
         v.extend_from_slice(b"Hello, World!");
         v[20] = (v.len() - 22) as u8;
 
-        let eocd = Reader::new(Slice::new(&v)).unwrap();
+        let eocd = Reader::new(&v).unwrap();
 
-        assert_eq!(eocd.comment(), Some(Slice::new(b"Hello, World!")));
+        assert_eq!(eocd.comment(), Some(&b"Hello, World!"[..]));
     }
 
     #[test]
@@ -240,9 +236,9 @@ mod tests {
         v[21] = 0xff;
         v[20] = 0xff;
 
-        let eocd = Reader::new(Slice::new(&v)).unwrap();
+        let eocd = Reader::new(&v).unwrap();
 
-        assert_eq!(eocd.comment(), Some(Slice::new(&v[22..])));
+        assert_eq!(eocd.comment(), Some(&v[22..]));
     }
 
     #[test]
@@ -256,7 +252,7 @@ mod tests {
 
             let slice = &v[0..(22 + (length as usize) - 1)];
 
-            let eocd = Reader::new(Slice::new(slice)).unwrap();
+            let eocd = Reader::new(slice).unwrap();
 
             assert_eq!(eocd.comment(), None);
         }
