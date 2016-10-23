@@ -40,7 +40,7 @@ impl<'a> CentralDirectoryFileHeaderReader<'a> {
     pub fn min_size() -> usize { 46 }
 
     /// Returns the maximum size of the record.
-    pub fn max_size() -> usize { 46 + 65535 * 3 }
+    pub fn max_size() -> usize { Self::min_size() + 65535 * 3 }
 
     /// Returns the expected signature.
     pub fn expected_signature() -> u32 { 0x02014b50 }

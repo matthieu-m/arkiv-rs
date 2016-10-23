@@ -29,7 +29,7 @@ impl<'a> EndOfCentralDirectoryReader<'a> {
     pub fn min_size() -> usize { 22 }
 
     /// Returns the maximum size of the record.
-    pub fn max_size() -> usize { 22 + 65535 }
+    pub fn max_size() -> usize { Self::min_size() + 65535 }
 
     /// Returns the expected signature.
     pub fn expected_signature() -> u32 { 0x06054b50 }

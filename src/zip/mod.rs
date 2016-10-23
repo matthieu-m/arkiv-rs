@@ -162,5 +162,8 @@
 
 mod eocd;
 mod cdfh;
+mod lfh;
+
 pub use self::eocd::EndOfCentralDirectoryReader;
 pub use self::cdfh::CentralDirectoryFileHeaderReader;
+pub use self::lfh::LocalFileHeaderReader;
