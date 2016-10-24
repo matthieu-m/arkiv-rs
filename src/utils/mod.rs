@@ -39,22 +39,18 @@ impl<'a> Slice<'a> {
     /// Returns the elements of the slice comprised in the range, or `None` if
     /// the range is out of bounds or ill-formed.
     pub fn slice(&self, range: Range<usize>) -> Option<Slice<'a>> {
-        if range.start <= range.end && range.end <= self.len() {
-            //  Pre-conditions:
-            //  - the range is well-formed (start <= end)
-            //  - the beginning of the range is within bounds
-            //  - the end of the range is within bounds
-            //  Post-conditions:
-            //  - the subslice created has the same lifetime as the original
-            Some(Slice { data: unsafe {
-                from_raw_parts(
-                    self.data.as_ptr().offset(range.start as isize),
-                    range.end - range.start
-                )
-            } })
-        } else {
-            None
-        }
+        slice(self.data, range).map(Slice::new)
+    }
+
+    /// Returns a copy of the original slice, minus the `n` first bytes.
+    #[allow(dead_code)]
+    pub fn skip(&self, n: usize) -> Slice<'a> {
+        Slice::new(skip(self.data, n))
+    }
+
+    /// Returns a copy of the slice, minus any byte after the `n`-th.
+    pub fn take(&self, n: usize) -> Slice<'a> {
+        Slice::new(take(self.data, n))
     }
 }
 
@@ -118,5 +114,72 @@ pub fn read_u32_le<'a>(slice: Slice<'a>) -> Option<u32> {
                  ((b3 as u32) << 24))
         },
         _ => None
+    }
+}
+
+/// Returns the elements of the slice comprised in the range, or `None` if
+/// the range is out of bounds or ill-formed.
+pub fn slice<'a>(original: &'a [u8], range: Range<usize>) -> Option<&'a [u8]> {
+    if range.start <= range.end && range.end <= original.len() {
+        Some(
+            take(
+                skip(original, range.start),
+                range.end.wrapping_sub(range.start)
+            )
+        )
+    } else {
+        None
+    }
+}
+
+/// Returns a copy of the original slice, minus the `n` first elements.
+pub fn skip<'a>(original: &'a [u8], n: usize) -> &'a [u8] {
+    if n == 0 { return original; }
+
+    let mut iter = original.iter();
+    iter.nth(n.wrapping_sub(1)); // O(1)
+    iter.as_slice()
+}
+
+/// Returns a copy of the original slice, minus any element after the `n`-th.
+pub fn take<'a>(original: &'a [u8], n: usize) -> &'a [u8] {
+    use std::cmp::min;
+
+    // TODO: replace with safe code
+    //
+    // While the following code optimizes well:
+    // ```
+    // let take_back = original.len().wrapping_sub(n).wrapping_sub(1);
+    // let mut iter = original.iter();
+    // iter.rev().nth(take_back); // O(n)
+    // iter.as_slice()
+    // ```
+    // It can unfortunately be VERY slow in debug.
+    unsafe { from_raw_parts(original.as_ptr(), min(original.len(), n)) }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::slice;
+
+    #[test]
+    fn slice_success_with_zero_range_on_empty_slice() {
+        assert_eq!(slice(&[], 0..0), Some(&[][..]));
+    }
+
+    #[test]
+    fn slice_failure_with_invalid_range_on_empty_slice() {
+        for i in 1..100 {
+            let begin = i * 7919;
+            assert_eq!(slice(&[], begin..(begin - i)), None);
+        }
+    }
+
+    #[test]
+    fn slice_failure_with_non_empty_range_on_empty_slice() {
+        for i in 1..100 {
+            let begin = i * 7919;
+            assert_eq!(slice(&[], begin..(begin + i)), None);
+        }
     }
 }

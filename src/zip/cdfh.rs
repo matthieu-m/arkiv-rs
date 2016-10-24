@@ -53,7 +53,9 @@ impl<'a> CentralDirectoryFileHeaderReader<'a> {
     /// still possible.
     pub fn new(slice: &'a [u8]) -> Option<CentralDirectoryFileHeaderReader<'a>> {
         if slice.len() >= Self::min_size() {
-            Some(CentralDirectoryFileHeaderReader { data: Slice::new(slice) })
+            Some(CentralDirectoryFileHeaderReader {
+                data: Slice::new(slice).take(Self::max_size())
+            })
         } else {
             None
         }

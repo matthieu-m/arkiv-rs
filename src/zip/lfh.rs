@@ -46,7 +46,9 @@ impl<'a> LocalFileHeaderReader<'a> {
     /// still possible.
     pub fn new(slice: &'a [u8]) -> Option<LocalFileHeaderReader<'a>> {
         if slice.len() >= Self::min_size() {
-            Some(LocalFileHeaderReader { data: Slice::new(slice) })
+            Some(LocalFileHeaderReader {
+                data: Slice::new(slice).take(Self::max_size())
+            })
         } else {
             None
         }

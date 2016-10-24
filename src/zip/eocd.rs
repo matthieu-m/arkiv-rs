@@ -42,11 +42,16 @@ impl<'a> EndOfCentralDirectoryReader<'a> {
     /// still possible.
     pub fn new(slice: &'a [u8]) -> Option<EndOfCentralDirectoryReader<'a>> {
         if slice.len() >= Self::min_size() {
-            Some(EndOfCentralDirectoryReader { data: Slice::new(slice) })
+            Some(EndOfCentralDirectoryReader {
+                data: Slice::new(slice).take(Self::max_size())
+            })
         } else {
             None
         }
     }
+
+    /// Returns the underlying slice.
+    pub fn raw(&self) -> &'a [u8] { self.data.raw() }
 
     /// Returns the signature.
     pub fn signature(&self) -> u32 { self.read_u32(0..4) }
