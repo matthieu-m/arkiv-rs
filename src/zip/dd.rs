@@ -83,7 +83,7 @@ impl<'a> DataDescriptorReader<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::super::super::utils::tests::{test_some_u32_at};
+    use super::super::super::utils::test::{test_some_u32_at};
 
     type Reader<'a> = super::DataDescriptorReader<'a>;
 

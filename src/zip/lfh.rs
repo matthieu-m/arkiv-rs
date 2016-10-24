@@ -125,7 +125,7 @@ impl<'a> LeFieldReader<'a> for LocalFileHeaderReader<'a> {
 mod tests {
     use std;
 
-    use super::super::super::utils::tests::{test_all_u16_at, test_some_u32_at};
+    use super::super::super::utils::test::{test_all_u16_at, test_some_u32_at};
 
     type Reader<'a> = super::LocalFileHeaderReader<'a>;
 

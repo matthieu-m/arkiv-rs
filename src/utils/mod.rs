@@ -1,7 +1,7 @@
 //! # Utility module
 
 #[cfg(test)]
-pub mod tests;
+pub mod test;
 
 use std::ops::Range;
 use std::slice::from_raw_parts;

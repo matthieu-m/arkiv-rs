@@ -91,7 +91,7 @@ impl<'a> LeFieldReader<'a> for EndOfCentralDirectoryReader<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::super::super::utils::tests::{test_all_u16_at, test_some_u32_at};
+    use super::super::super::utils::test::{test_all_u16_at, test_some_u32_at};
 
     type Reader<'a> = super::EndOfCentralDirectoryReader<'a>;
 
