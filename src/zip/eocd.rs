@@ -42,8 +42,11 @@ impl<'a> EndOfCentralDirectoryReader<'a> {
     /// still possible.
     pub fn new(slice: &'a [u8]) -> Option<EndOfCentralDirectoryReader<'a>> {
         if slice.len() >= Self::min_size() {
+            let reader =
+                EndOfCentralDirectoryReader { data: Slice::new(slice) };
+
             Some(EndOfCentralDirectoryReader {
-                data: Slice::new(slice).take(Self::max_size())
+                data: Slice::new(slice).take(reader.len())
             })
         } else {
             None
@@ -85,6 +88,11 @@ impl<'a> EndOfCentralDirectoryReader<'a> {
         let min = Self::min_size();
         let range = min..(min + self.comment_size() as usize);
         self.data.slice(range).map(|s| s.raw())
+    }
+
+    /// Returns the expected size of the record.
+    fn len(&self) -> usize {
+        Self::min_size() + self.comment_size() as usize
     }
 }
 

@@ -53,8 +53,12 @@ impl<'a> CentralDirectoryFileHeaderReader<'a> {
     /// still possible.
     pub fn new(slice: &'a [u8]) -> Option<CentralDirectoryFileHeaderReader<'a>> {
         if slice.len() >= Self::min_size() {
+            let reader = CentralDirectoryFileHeaderReader {
+                data: Slice::new(slice)
+            };
+
             Some(CentralDirectoryFileHeaderReader {
-                data: Slice::new(slice).take(Self::max_size())
+                data: Slice::new(slice).take(reader.len())
             })
         } else {
             None
@@ -196,6 +200,11 @@ impl<'a> CentralDirectoryFileHeaderReader<'a> {
         Self::min_size() +
         self.file_name_size() as usize +
         self.extra_field_size() as usize
+    }
+
+    /// Returns the expected size of the record.
+    fn len(&self) -> usize {
+        self.file_comment_position() + self.file_comment_size() as usize
     }
 }
 

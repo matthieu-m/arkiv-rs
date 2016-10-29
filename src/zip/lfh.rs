@@ -46,8 +46,10 @@ impl<'a> LocalFileHeaderReader<'a> {
     /// still possible.
     pub fn new(slice: &'a [u8]) -> Option<LocalFileHeaderReader<'a>> {
         if slice.len() >= Self::min_size() {
+            let reader = LocalFileHeaderReader { data: Slice::new(slice) };
+
             Some(LocalFileHeaderReader {
-                data: Slice::new(slice).take(Self::max_size())
+                data: Slice::new(slice).take(reader.len())
             })
         } else {
             None
@@ -114,6 +116,11 @@ impl<'a> LocalFileHeaderReader<'a> {
     fn extra_field_position(&self) -> usize {
         Self::min_size() +
         self.file_name_size() as usize
+    }
+
+    /// Returns the size of the record.
+    fn len(&self) -> usize {
+        self.extra_field_position() + self.extra_field_size() as usize
     }
 }
 
