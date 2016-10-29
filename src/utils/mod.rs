@@ -36,6 +36,15 @@ impl<'a> Slice<'a> {
     /// is out of bounds.
     pub fn get(&self, index: usize) -> Option<&u8> { self.data.get(index) }
 
+    /// Returns the position of the start of this slice in the `hay` slice,
+    /// or None if this slice does not start within the `hay` slice.
+    ///
+    /// Note that this slice may not entirely fit within the `hay` slice.
+    #[allow(dead_code)]
+    pub fn position(&self, hay: Slice<'a>) -> Option<usize> {
+        position(self.data, hay.data)
+    }
+
     /// Returns the elements of the slice comprised in the range, or `None` if
     /// the range is out of bounds or ill-formed.
     pub fn slice(&self, range: Range<usize>) -> Option<Slice<'a>> {
@@ -85,6 +94,22 @@ pub trait LeFieldReader<'a> {
     /// Optional binary field of a given length at a given index.
     fn read_field(&self, index: usize, length: usize) -> Option<&'a [u8]> {
         self.get_slice().slice(index..(index + length)).map(|s| s.raw())
+    }
+}
+
+/// Returns the position of the `needle` slice in the `hay` slice, or None if 
+/// the `needle` slice does start within the `hay` slice.
+///
+/// The `needle` slice may not entirely fit within the `hay` slice.
+pub fn position(needle: &[u8], hay: &[u8]) -> Option<usize> {
+    let hay_len = hay.len();
+    let hay = hay.as_ptr() as usize;
+    let needle = needle.as_ptr() as usize;
+
+    if needle >= hay && needle.wrapping_sub(hay) < hay_len {
+        Some(needle.wrapping_sub(hay))
+    } else {
+        None
     }
 }
 

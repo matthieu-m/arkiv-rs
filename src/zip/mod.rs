@@ -160,12 +160,11 @@
 //! - Wikipedia: https://en.wikipedia.org/wiki/Zip_(file_format)
 //! - PKWare: http://www.pkware.com/documents/casestudies/APPNOTE.TXT
 
-mod eocd;
-mod cdfh;
-mod lfh;
-mod dd;
+pub mod low_level;
+pub mod raw;
 
-pub use self::eocd::EndOfCentralDirectoryReader;
-pub use self::cdfh::CentralDirectoryFileHeaderReader;
-pub use self::lfh::LocalFileHeaderReader;
-pub use self::dd::DataDescriptorReader;
+mod cdfh;
+mod dd;
+mod eocd;
+mod eocd_iter;
+mod lfh;
