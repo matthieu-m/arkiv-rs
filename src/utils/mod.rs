@@ -97,6 +97,15 @@ pub trait LeFieldReader<'a> {
     }
 }
 
+/// Returns the elements of the `hay` slice that overlap with `range`.
+pub fn intersect_slice<'a>(hay: &'a [u8], range: Range<usize>) -> &'a [u8] {
+    if range.start <= range.end && range.start <= hay.len() {
+        take(skip(hay, range.start), range.end.wrapping_sub(range.start))
+    } else {
+        b""
+    }
+}
+
 /// Returns the position of the `needle` slice in the `hay` slice, or None if 
 /// the `needle` slice does start within the `hay` slice.
 ///

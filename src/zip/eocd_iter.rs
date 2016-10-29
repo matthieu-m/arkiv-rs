@@ -104,11 +104,9 @@ pub fn locate_end_of_central_directory<'a, R: ?Sized>(reader: &'a R)
         reader.get(start..end)
     };
 
-    slice.and_then(|slice| {
-        EndOfCentralDirectoryIterator::new(slice)
-            .filter(|eocd| matches(eocd, slice))
-            .next()
-    })
+    EndOfCentralDirectoryIterator::new(slice)
+        .filter(|eocd| matches(eocd, slice))
+        .next()
 }
 
 #[cfg(test)]
