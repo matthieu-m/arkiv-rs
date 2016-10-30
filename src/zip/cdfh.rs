@@ -65,6 +65,9 @@ impl<'a> CentralDirectoryFileHeaderReader<'a> {
         }
     }
 
+    /// Returns the underlying slice.
+    pub fn raw(&self) -> &'a [u8] { self.data.raw() }
+
     /// Returns the signature.
     pub fn signature(&self) -> u32 { self.read_u32(0..4) }
 

@@ -44,6 +44,9 @@ impl<'a> DataDescriptorReader<'a> {
         }
     }
 
+    /// Returns the underlying slice.
+    pub fn raw(&self) -> &'a [u8] { self.data.raw() }
+
     /// Returns whether this instance has a signature field, or not.
     pub fn has_signature(&self) -> bool { self.data.len() == Self::max_size() }
 
