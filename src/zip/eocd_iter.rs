@@ -30,8 +30,8 @@ pub struct EndOfCentralDirectoryIterator<'a> {
 }
 
 impl<'a> EndOfCentralDirectoryIterator<'a> {
-    /// Returns an instance of EndOfCentralDirectoryIterator to search for End of Central
-    /// Directory records within the slice.
+    /// Returns an instance of EndOfCentralDirectoryIterator to search for End
+    /// of Central Directory records within the slice.
     ///
     /// The most up-to-date record is in the last
     /// `EndOfCentralDirectoryReader::max_size()` bytes of the archive.
