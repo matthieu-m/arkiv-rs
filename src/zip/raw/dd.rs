@@ -2,7 +2,7 @@
 
 use std::ops::Range;
 
-use super::super::utils::{DEADBEEF, Slice, read_u32_le};
+use utils::{DEADBEEF, Slice, read_u32_le};
 
 /// A Local File Header
 ///
@@ -86,7 +86,7 @@ impl<'a> DataDescriptorReader<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::super::super::utils::test::{test_some_u32_at};
+    use utils::test::{test_some_u32_at};
 
     type Reader<'a> = super::DataDescriptorReader<'a>;
 

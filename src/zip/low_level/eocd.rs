@@ -2,10 +2,10 @@
 
 use std::iter::Iterator;
 
-use super::super::api::Reader;
-use super::super::utils::{Slice, skip};
+use api::Reader;
+use utils::{Slice, skip};
 
-use super::raw::EndOfCentralDirectoryReader;
+use zip::raw::EndOfCentralDirectoryReader;
 
 /// An iterator over all potential End of Central Directory records within the
 /// slice, iterating *backward* (from the end of the slice).
@@ -111,9 +111,9 @@ pub fn locate_end_of_central_directory<'a, R: ?Sized>(reader: &'a R)
 
 #[cfg(test)]
 mod tests {
+    use utils::position;
+    use zip::raw::EndOfCentralDirectoryReader as EocdReader;
     use super::{EndOfCentralDirectoryIterator, locate_end_of_central_directory};
-    use super::super::raw::EndOfCentralDirectoryReader as EocdReader;
-    use super::super::super::utils::position;
 
     #[test]
     fn iter_eocd_none_on_too_small_slice() {

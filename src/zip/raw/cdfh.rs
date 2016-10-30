@@ -1,6 +1,6 @@
 //! # Central Directory File Header
 
-use super::super::utils::{Slice, LeFieldReader};
+use utils::{Slice, LeFieldReader};
 
 /// A Central Directory File Header
 ///
@@ -221,7 +221,7 @@ impl<'a> LeFieldReader<'a> for CentralDirectoryFileHeaderReader<'a> {
 mod tests {
     use std;
 
-    use super::super::super::utils::test::{test_all_u16_at, test_some_u32_at};
+    use utils::test::{test_all_u16_at, test_some_u32_at};
 
     type Reader<'a> = super::CentralDirectoryFileHeaderReader<'a>;
 

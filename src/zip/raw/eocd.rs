@@ -1,6 +1,6 @@
 //! # End of Central Directory
 
-use super::super::utils::{Slice, LeFieldReader};
+use utils::{Slice, LeFieldReader};
 
 /// A End of Central Directory
 ///
@@ -104,7 +104,7 @@ impl<'a> LeFieldReader<'a> for EndOfCentralDirectoryReader<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::super::super::utils::test::{test_all_u16_at, test_some_u32_at};
+    use utils::test::{test_all_u16_at, test_some_u32_at};
 
     type Reader<'a> = super::EndOfCentralDirectoryReader<'a>;
 

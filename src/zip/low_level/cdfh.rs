@@ -3,9 +3,9 @@
 
 use std::iter::Iterator;
 
-use super::super::utils::Slice;
+use utils::Slice;
 
-use super::raw::CentralDirectoryFileHeaderReader;
+use zip::raw::CentralDirectoryFileHeaderReader;
 
 /// An iterator over a contiguous sequence of Central Directory File Header
 /// records.
@@ -72,9 +72,9 @@ impl<'a> Iterator for CentralDirectoryFileHeaderIterator<'a> {
 
 #[cfg(test)]
 mod tests {
+    use utils::position;
+    use zip::raw::CentralDirectoryFileHeaderReader as CdfhReader;
     use super::CentralDirectoryFileHeaderIterator as CdfhIterator;
-    use super::super::raw::CentralDirectoryFileHeaderReader as CdfhReader;
-    use super::super::super::utils::position;
 
     #[test]
     fn iter_cdfh_none_on_too_small_slice() {

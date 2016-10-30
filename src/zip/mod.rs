@@ -162,10 +162,3 @@
 
 pub mod low_level;
 pub mod raw;
-
-mod cdfh;
-mod cdfh_iter;
-mod dd;
-mod eocd;
-mod eocd_iter;
-mod lfh;

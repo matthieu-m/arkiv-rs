@@ -2,7 +2,7 @@
 
 use std::ops::Range;
 
-use super::utils::intersect_slice;
+use utils::intersect_slice;
 
 /// A trait used to access portions of a buffer at a time, without (necessarily)
 /// having the full buffer in memory at any point in time.
