@@ -7,3 +7,5 @@ pub use super::eocd_iter::{
     EndOfCentralDirectoryIterator,
     locate_end_of_central_directory
 };
+
+pub use super::cdfh_iter::CentralDirectoryFileHeaderIterator;
